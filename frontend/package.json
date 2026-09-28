@@ -16,6 +16,7 @@
     "jsdom": "^24.0.0"
   },
   "jest": {
-    "testEnvironment": "jsdom"
+    "testEnvironment": "jsdom",
+    "setupFiles": ["<rootDir>/tests/jest.setup.js"]
   }
 }
