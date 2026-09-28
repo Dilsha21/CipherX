@@ -7,7 +7,7 @@ const challengesById = new Map();
 
 const CHALLENGE_TTL_MS = 10 * 60 * 1000; // 10 minutes
 
-function createChallenge({ userId, requiredFactors }) {
+function createChallenge({ userId, requiredFactors, ttlMs = CHALLENGE_TTL_MS }) {
   const challengeId = randomUUID();
   const now = Date.now();
   const challenge = {
@@ -16,20 +16,30 @@ function createChallenge({ userId, requiredFactors }) {
     requiredFactors,
     completedFactors: [],
     createdAt: now,
-    expiresAt: now + CHALLENGE_TTL_MS,
+    expiresAt: now + ttlMs,
   };
   challengesById.set(challengeId, challenge);
   return challenge;
 }
 
+function isExpired(challenge) {
+  return Date.now() > challenge.expiresAt;
+}
+
 function getChallenge(challengeId) {
-  return challengesById.get(challengeId) || null;
+  const challenge = challengesById.get(challengeId);
+  if (!challenge) return null;
+  if (isExpired(challenge)) {
+    challengesById.delete(challengeId);
+    return null;
+  }
+  return challenge;
 }
 
 // Marks a required factor as completed for a challenge. Idempotent: marking
 // an already-completed factor again is a no-op, not a duplicate entry.
 function markFactorComplete(challengeId, factor) {
-  const challenge = challengesById.get(challengeId);
+  const challenge = getChallenge(challengeId); // also clears it if expired
   if (!challenge) return null;
 
   if (!challenge.completedFactors.includes(factor)) {
