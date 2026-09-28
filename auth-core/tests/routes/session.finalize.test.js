@@ -59,4 +59,17 @@ describe('POST /auth/session/finalize', () => {
     const decoded = verifySessionToken(res.body.sessionToken);
     expect(decoded).not.toBeNull();
   });
+
+  it('rejects a second finalize call with the same challengeId (no replay)', async () => {
+    const challengeId = await registerAndLogin();
+    markFactorComplete(challengeId, 'biometric');
+    markFactorComplete(challengeId, 'voice_otp');
+
+    const first = await request(app).post('/auth/session/finalize').send({ challengeId });
+    expect(first.status).toBe(200);
+
+    const second = await request(app).post('/auth/session/finalize').send({ challengeId });
+    expect(second.status).toBe(400);
+    expect(second.body.error).toBe('invalid_challenge');
+  });
 });
