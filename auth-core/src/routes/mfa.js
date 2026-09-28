@@ -5,19 +5,20 @@ const { markFactorComplete } = require('../store/challengeStore');
 const biometricFactorClient = require('../services/biometricFactorClient');
 const voiceOtpFactorClient = require('../services/voiceOtpFactorClient');
 const { findUserById } = require('../store/userStore');
+const { asyncHandler } = require('../lib/asyncHandler');
 
 const router = express.Router();
 
-router.post('/biometric/challenge', async (req, res) => {
+router.post('/biometric/challenge', asyncHandler(async (req, res) => {
   const { challengeId } = req.body || {};
   const challenge = requireChallenge(req, res, challengeId);
   if (!challenge) return;
 
   const options = await biometricFactorClient.requestLoginOptions(challenge.userId);
   return res.status(200).json(options);
-});
+}));
 
-router.post('/biometric/verify', async (req, res) => {
+router.post('/biometric/verify', asyncHandler(async (req, res) => {
   const { challengeId, assertionResponse } = req.body || {};
   const challenge = requireChallenge(req, res, challengeId);
   if (!challenge) return;
@@ -30,9 +31,9 @@ router.post('/biometric/verify', async (req, res) => {
 
   const updated = markFactorComplete(challengeId, 'biometric');
   return res.status(200).json({ factor: 'biometric', passed: true, completedFactors: updated.completedFactors });
-});
+}));
 
-router.post('/voice-otp/send', async (req, res) => {
+router.post('/voice-otp/send', asyncHandler(async (req, res) => {
   const { challengeId } = req.body || {};
   const challenge = requireChallenge(req, res, challengeId);
   if (!challenge) return;
@@ -44,9 +45,9 @@ router.post('/voice-otp/send', async (req, res) => {
 
   const result = await voiceOtpFactorClient.sendCode(challenge.userId, user.phoneNumber);
   return res.status(200).json(result);
-});
+}));
 
-router.post('/voice-otp/verify', async (req, res) => {
+router.post('/voice-otp/verify', asyncHandler(async (req, res) => {
   const { challengeId, otpId, code } = req.body || {};
   const challenge = requireChallenge(req, res, challengeId);
   if (!challenge) return;
@@ -59,6 +60,6 @@ router.post('/voice-otp/verify', async (req, res) => {
 
   const updated = markFactorComplete(challengeId, 'voice_otp');
   return res.status(200).json({ factor: 'voice_otp', passed: true, completedFactors: updated.completedFactors });
-});
+}));
 
 module.exports = router;

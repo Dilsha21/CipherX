@@ -13,6 +13,18 @@ app.use('/auth/mfa', mfaRoutes);
 
 app.get('/health', (_req, res) => res.json({ status: 'ok', service: 'auth-core' }));
 
+// Catches errors forwarded by asyncHandler, e.g. a factor service being
+// unreachable. Kept last so it only sees errors routes didn't handle
+// themselves.
+// eslint-disable-next-line no-unused-vars
+app.use((err, _req, res, _next) => {
+  console.error('auth-core unhandled route error:', err.message);
+  res.status(502).json({
+    error: 'service_unavailable',
+    message: 'A required service is temporarily unavailable. Please try again shortly.',
+  });
+});
+
 const PORT = process.env.PORT || 4000;
 if (require.main === module) {
   app.listen(PORT, () => console.log(`auth-core listening on :${PORT}`));
