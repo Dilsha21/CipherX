@@ -5,6 +5,7 @@ const { createUser, findUserByUsername } = require('../store/userStore');
 const { createChallenge } = require('../store/challengeStore');
 const { normalizeField } = require('../lib/validate');
 const { REQUIRED_FACTORS } = require('../lib/constants');
+const { logAuditEvent } = require('../lib/auditLog');
 
 const router = express.Router();
 
@@ -39,8 +40,11 @@ router.post('/login', async (req, res) => {
   const passwordMatches = user ? await verifyPassword(password, user.passwordHash) : false;
 
   if (!user || !passwordMatches) {
+    logAuditEvent({ userId: user ? user.userId : null, factor: 'password', outcome: 'failure' });
     return apiError(res, 401, 'invalid_credentials', 'That username or password is not correct.');
   }
+
+  logAuditEvent({ userId: user.userId, factor: 'password', outcome: 'success' });
 
   const challenge = createChallenge({ userId: user.userId, requiredFactors: REQUIRED_FACTORS });
 
