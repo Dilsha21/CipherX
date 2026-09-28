@@ -54,7 +54,12 @@ secrets in plaintext).
 - [x] `POST /auth/register` — bcrypt password hashing, in-memory user store
 - [x] `POST /auth/login` — password check, issues a persisted challenge
 - [x] Persistent challenge + completed-factors tracking (10-minute TTL)
-- [ ] Server-to-server MFA proxy to Biometric-Factor / Voice-OTP-Factor
+- [x] Server-to-server MFA proxy to Biometric-Factor / Voice-OTP-Factor
+      (`POST /auth/mfa/biometric/challenge|verify`,
+      `POST /auth/mfa/voice-otp/send|verify`). Configurable via
+      `BIOMETRIC_FACTOR_URL` / `VOICE_OTP_FACTOR_URL` — see `.env.example`.
+      An unreachable factor service returns `502 service_unavailable`
+      rather than hanging the request.
 - [ ] Session finalize + JWT issuance
 - [ ] Audit log wiring
 
