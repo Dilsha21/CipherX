@@ -25,12 +25,12 @@ sections 1 and 4 (library interface).
 
 ## While developing standalone
 
-Biometric-Factor and Voice-OTP-Factor aren't your dependency to build — mock
-them. `src/mocks/factorServices.js` gives you fake implementations matching
-their internal API shapes (section 2 and 3 of the contract) so you can build
-and test the orchestrator's factor-tracking logic without either service
-running. Swap the mocks for real `fetch`/`axios` calls to
-`http://localhost:4001` / `:4002` only during the integration phase.
+Biometric-Factor and Voice-OTP-Factor aren't your dependency to build.
+`src/services/biometricFactorClient.js` and `src/services/voiceOtpFactorClient.js`
+make real HTTP calls to `BIOMETRIC_FACTOR_URL` / `VOICE_OTP_FACTOR_URL`
+(default `:4001` / `:4002`), but the test suite never needs either service
+running — routes are tested with `nock` mocking the HTTP layer (see
+`tests/routes/mfa.*.test.js`).
 
 ## External tools / libraries
 
@@ -49,11 +49,38 @@ independently passed), NFR3 (TLS — see `security-admin` for the actual
 enforcement middleware you'll wire in at integration; for now just don't log
 secrets in plaintext).
 
+## Implementation status
+
+- [x] `POST /auth/register` — bcrypt password hashing, in-memory user store
+- [x] `POST /auth/login` — password check, issues a persisted challenge
+- [x] Persistent challenge + completed-factors tracking (10-minute TTL)
+- [x] Server-to-server MFA proxy to Biometric-Factor / Voice-OTP-Factor
+      (`POST /auth/mfa/biometric/challenge|verify`,
+      `POST /auth/mfa/voice-otp/send|verify`). Configurable via
+      `BIOMETRIC_FACTOR_URL` / `VOICE_OTP_FACTOR_URL` — see `.env.example`.
+      An unreachable factor service returns `502 service_unavailable`
+      rather than hanging the request.
+- [x] `POST /auth/session/finalize` — issues a JWT session token once every
+      required factor has independently passed; `409 factors_incomplete`
+      otherwise. The challenge is invalidated on success so it can't be
+      replayed for a second token. Configure `JWT_SECRET` in production —
+      see `.env.example`.
+- [x] Audit log wiring — `src/lib/auditLog.js` is a local stand-in for
+      Security-Admin's `logAuditEvent(...)` (same function signature per
+      `/shared/API_CONTRACT.md` section 4), called on every password login,
+      biometric verify, voice-otp verify, and session finalize, success or
+      failure (FR6). Swap the import for Security-Admin's real
+      implementation at integration time.
+
+All five pieces of this module are implemented; see `git log` on this
+branch for the incremental history (each feature was built on its own
+sub-branch and merged in).
+
 ## Getting started
 
 ```
 cd auth-core
 npm install
-npm test      # runs the placeholder test — replace/extend as you build
+npm test      # runs the full test suite
 npm start     # starts the server on :4000
 ```

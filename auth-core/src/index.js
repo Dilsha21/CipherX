@@ -1,18 +1,28 @@
 const express = require('express');
+const authRoutes = require('./routes/auth');
+const mfaRoutes = require('./routes/mfa');
+const sessionRoutes = require('./routes/session');
 
 const app = express();
 app.use(express.json());
 
-// TODO(Member A): implement per /shared/API_CONTRACT.md section 1
-// - POST /auth/register
-// - POST /auth/login
-// - POST /auth/mfa/biometric/challenge  (proxy to Biometric-Factor)
-// - POST /auth/mfa/biometric/verify     (proxy to Biometric-Factor)
-// - POST /auth/mfa/voice-otp/send       (proxy to Voice-OTP-Factor)
-// - POST /auth/mfa/voice-otp/verify     (proxy to Voice-OTP-Factor)
-// - POST /auth/session/finalize
+app.use('/auth', authRoutes);
+app.use('/auth/mfa', mfaRoutes);
+app.use('/auth/session', sessionRoutes);
 
 app.get('/health', (_req, res) => res.json({ status: 'ok', service: 'auth-core' }));
+
+// Catches errors forwarded by asyncHandler, e.g. a factor service being
+// unreachable. Kept last so it only sees errors routes didn't handle
+// themselves.
+// eslint-disable-next-line no-unused-vars
+app.use((err, _req, res, _next) => {
+  console.error('auth-core unhandled route error:', err.message);
+  res.status(502).json({
+    error: 'service_unavailable',
+    message: 'A required service is temporarily unavailable. Please try again shortly.',
+  });
+});
 
 const PORT = process.env.PORT || 4000;
 if (require.main === module) {
