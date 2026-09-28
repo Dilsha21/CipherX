@@ -60,7 +60,11 @@ secrets in plaintext).
       `BIOMETRIC_FACTOR_URL` / `VOICE_OTP_FACTOR_URL` — see `.env.example`.
       An unreachable factor service returns `502 service_unavailable`
       rather than hanging the request.
-- [ ] Session finalize + JWT issuance
+- [x] `POST /auth/session/finalize` — issues a JWT session token once every
+      required factor has independently passed; `409 factors_incomplete`
+      otherwise. The challenge is invalidated on success so it can't be
+      replayed for a second token. Configure `JWT_SECRET` in production —
+      see `.env.example`.
 - [ ] Audit log wiring
 
 ## Getting started
