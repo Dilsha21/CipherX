@@ -48,8 +48,21 @@ function markFactorComplete(challengeId, factor) {
   return challenge;
 }
 
+// Removes a challenge once a session token has been issued for it, so the
+// same challengeId can't be replayed to mint a second session.
+function invalidateChallenge(challengeId) {
+  return challengesById.delete(challengeId);
+}
+
 function _reset() {
   challengesById.clear();
 }
 
-module.exports = { createChallenge, getChallenge, markFactorComplete, _reset, CHALLENGE_TTL_MS };
+module.exports = {
+  createChallenge,
+  getChallenge,
+  markFactorComplete,
+  invalidateChallenge,
+  _reset,
+  CHALLENGE_TTL_MS,
+};
