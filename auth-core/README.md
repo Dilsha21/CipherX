@@ -49,11 +49,21 @@ independently passed), NFR3 (TLS — see `security-admin` for the actual
 enforcement middleware you'll wire in at integration; for now just don't log
 secrets in plaintext).
 
+## Implementation status
+
+- [x] `POST /auth/register` — bcrypt password hashing, in-memory user store
+- [x] `POST /auth/login` — password check (challenge/factor tracking is a
+      placeholder here; see `feature/auth-core-challenge-tracking`)
+- [ ] Persistent challenge + completed-factors tracking
+- [ ] Server-to-server MFA proxy to Biometric-Factor / Voice-OTP-Factor
+- [ ] Session finalize + JWT issuance
+- [ ] Audit log wiring
+
 ## Getting started
 
 ```
 cd auth-core
 npm install
-npm test      # runs the placeholder test — replace/extend as you build
+npm test      # runs the full test suite
 npm start     # starts the server on :4000
 ```
