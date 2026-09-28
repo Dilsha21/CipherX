@@ -1,5 +1,6 @@
 const request = require('supertest');
 const app = require('../../src/index');
+const { verifySessionToken } = require('../../src/lib/jwt');
 const { _reset: resetUsers } = require('../../src/store/userStore');
 const { _reset: resetChallenges, markFactorComplete } = require('../../src/store/challengeStore');
 
@@ -42,5 +43,20 @@ describe('POST /auth/session/finalize', () => {
     const res = await request(app).post('/auth/session/finalize').send({ challengeId });
     expect(res.status).toBe(409);
     expect(res.body.missing).toEqual(['voice_otp']);
+  });
+
+  it('issues a valid session token once all required factors have passed', async () => {
+    const challengeId = await registerAndLogin();
+    markFactorComplete(challengeId, 'biometric');
+    markFactorComplete(challengeId, 'voice_otp');
+
+    const res = await request(app).post('/auth/session/finalize').send({ challengeId });
+
+    expect(res.status).toBe(200);
+    expect(res.body.sessionToken).toBeDefined();
+    expect(res.body.expiresAt).toBeDefined();
+
+    const decoded = verifySessionToken(res.body.sessionToken);
+    expect(decoded).not.toBeNull();
   });
 });
