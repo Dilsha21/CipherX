@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  merge-conflict-check:
+    name: Check for merge conflicts with main
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+
+      - name: Attempt merge against base branch
+        run: |
+          git config user.email "ci@local"
+          git config user.name "CI"
+          git fetch origin "${{ github.event.pull_request.base.ref }}"
+          if ! git merge --no-commit --no-ff "origin/${{ github.event.pull_request.base.ref }}"; then
+            echo "::error::This branch has merge conflicts with '${{ github.event.pull_request.base.ref }}'. Resolve them locally (git fetch origin ${{ github.event.pull_request.base.ref }} && git merge origin/${{ github.event.pull_request.base.ref }}) before this PR can be merged."
+            git merge --abort
+            exit 1
+          fi
+          git merge --abort || true
+
+  test:
+    name: Test ${{ matrix.module }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        module: [auth-core, biometric-factor, voice-otp-factor, frontend, security-admin]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        working-directory: ${{ matrix.module }}
+        run: npm install
+
+      - name: Run tests
+        working-directory: ${{ matrix.module }}
+        run: npm test

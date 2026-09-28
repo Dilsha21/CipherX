@@ -1,0 +1,34 @@
+sequenceDiagram
+    participant U as User
+    participant App as Auth App
+    participant OS as Platform Biometric API
+    participant SE as Secure Enclave / TEE
+    participant Srv as Auth Server
+
+    Note over U,Srv: Enrolment (one-time, prior to first login)
+    U->>App: Start enrolment
+    App->>OS: Request key generation
+    OS->>SE: Generate key pair, bind to biometric unlock
+    SE-->>OS: Public key
+    OS-->>App: Public key
+    App->>Srv: Register public key for user
+    Srv-->>App: Enrolment confirmed (spoken confirmation)
+
+    Note over U,Srv: Verification (each login)
+    App->>Srv: Request challenge
+    Srv-->>App: Random challenge (nonce)
+    App->>OS: Verify(challenge)
+    OS->>U: "Scan your fingerprint" (audio + haptic prompt)
+    U->>OS: Places finger / looks at camera
+    OS->>SE: Match against enrolled template (on-device only)
+    SE-->>OS: Match result
+    alt Match succeeds
+        OS->>SE: Release private key for signing
+        SE-->>OS: Signed challenge
+        OS-->>App: Signature
+        App->>Srv: Submit signature
+        Srv->>Srv: Verify signature with stored public key
+        Srv-->>App: Factor accepted
+    else Match fails (up to 3 attempts)
+        OS-->>App: Failure + fallback to device passcode
+    end

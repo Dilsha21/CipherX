@@ -1,0 +1,32 @@
+stateDiagram-v2
+    [*] --> CredentialEntry
+    CredentialEntry: Credential Entry / "Enter your username, then your PIN" / accessible labelled fields, no CAPTCHA
+    CredentialEntry --> BiometricPrompt: credential accepted
+    CredentialEntry --> CredentialError: credential rejected
+
+    CredentialError: Error Announced / "That PIN was not recognised. Try again" / spoken immediately, focus stays on field
+    CredentialError --> CredentialEntry
+
+    BiometricPrompt: Biometric Prompt / "Second step: scan your fingerprint or face" / haptic buzz + spoken cue, platform dialogue
+    BiometricPrompt --> VoiceCallPending: biometric match
+    BiometricPrompt --> BiometricRetry: no match (attempt less than 3)
+    BiometricPrompt --> Locked: no match (attempt equals 3)
+
+    BiometricRetry: Retry Announced / "Not recognised, try again"
+    BiometricRetry --> BiometricPrompt
+
+    VoiceCallPending: Voice Call Placed / "Third step: we are calling your phone now" / live status announced, timer extendable
+    VoiceCallPending --> CodeEntry: call answered, code read
+
+    CodeEntry: Code Entry / "Enter the 6-digit code, or say repeat during the call" / accessible numeric field, press 1 to replay
+    CodeEntry --> Authenticated: code correct
+    CodeEntry --> CodeError: code incorrect or expired
+
+    CodeError: Error Announced / "That code did not match. Requesting a new call" / spoken, offers retry
+    CodeError --> VoiceCallPending: rate limit allows
+
+    Authenticated: Authenticated / "You are signed in" spoken confirmation
+    Authenticated --> [*]
+
+    Locked: Account Temporarily Locked / "Too many attempts. Try again in 10 minutes, or contact support"
+    Locked --> [*]

@@ -1,0 +1,37 @@
+flowchart TB
+    U["User<br/>(screen reader active)"]
+    subgraph CLIENT["Mobile Client (accessible UI)"]
+        APP["Auth App<br/>TalkBack / VoiceOver bound"]
+        BIO["Platform Biometric API<br/>(BiometricPrompt / LocalAuthentication)"]
+    end
+    subgraph BACKEND["Backend Trust Zone"]
+        ORCH["Auth Orchestrator Service"]
+        IDSTORE["Identity &amp; Credential Store"]
+        BIOVER["Biometric Assertion Verifier"]
+        OTPSVC["Voice OTP Service"]
+        SESS["Session / Token Service"]
+        AUDIT["Audit Log"]
+    end
+    subgraph TEL["Telephony Boundary"]
+        GATEWAY["Voice Gateway API<br/>(e.g. Twilio Programmable Voice)"]
+        PSTN(["PSTN / Carrier Network"])
+    end
+    PHONE["User's Registered Phone<br/>(any call-capable line)"]
+
+    U -->|"1. Username + PIN"| APP
+    APP -->|"2. Verify credential"| ORCH
+    ORCH -->|"3. Check"| IDSTORE
+    ORCH -->|"4. Request biometric assertion"| APP
+    APP -->|"5. Trigger"| BIO
+    BIO -->|"6. Signed assertion"| APP
+    APP -->|"7. Submit assertion"| BIOVER
+    BIOVER -->|"8. Verified"| ORCH
+    ORCH -->|"9. Generate OTP, request call"| OTPSVC
+    OTPSVC -->|"10. Place call"| GATEWAY
+    GATEWAY --> PSTN --> PHONE
+    PHONE -.->|"11. User hears code, re-enters in app"| APP
+    APP -->|"12. Submit code"| OTPSVC
+    OTPSVC -->|"13. Verified"| ORCH
+    ORCH -->|"14. Issue token"| SESS
+    SESS -->|"15. Session"| APP
+    ORCH -.->|"log every step"| AUDIT

@@ -1,0 +1,21 @@
+{
+  "name": "auth-core",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Authentication orchestrator for the MFA-for-visually-impaired-users system",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "jest"
+  },
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "supertest": "^6.3.4"
+  }
+}

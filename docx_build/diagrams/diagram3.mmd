@@ -1,0 +1,30 @@
+sequenceDiagram
+    participant U as User
+    participant App as Auth App
+    participant Srv as Auth Server
+    participant OTP as Voice OTP Service
+    participant GW as Voice Gateway (Twilio)
+    participant Phone as User's Phone
+
+    Note over U,Srv: Triggered after biometric factor succeeds
+    App->>Srv: Request voice-call factor
+    Srv->>OTP: Generate 6-digit code
+    OTP->>OTP: Store salted hash, 5 min TTL, attempt counter = 0
+    OTP->>GW: Place call, TwiML script with code
+    GW->>Phone: Ring
+    Phone->>U: User answers
+    GW->>Phone: TTS: reads code digit-by-digit
+    opt User presses 1
+        Phone->>GW: DTMF "1"
+        GW->>Phone: Repeats code
+    end
+    U->>App: Types code into accessible field
+    App->>Srv: Submit entered code
+    Srv->>OTP: Verify hash + TTL + attempt counter
+    alt Correct and not expired
+        OTP-->>Srv: Valid
+        Srv-->>App: Factor accepted, issue session
+    else Incorrect or expired
+        OTP-->>Srv: Invalid (increment counter)
+        Srv-->>App: Rejected - offer new call after short delay
+    end

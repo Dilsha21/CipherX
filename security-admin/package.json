@@ -1,0 +1,20 @@
+{
+  "name": "security-admin",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Rate limiting, audit logging, and threat-model documentation",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "jest"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "express-rate-limit": "^7.2.0",
+    "helmet": "^7.1.0"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "supertest": "^6.3.4"
+  }
+}

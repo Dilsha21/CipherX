@@ -1,0 +1,25 @@
+flowchart LR
+    subgraph Z1["Zone 1 - User Device (trusted hardware, untrusted network)"]
+        SE["Secure Enclave / TEE<br/>(private key, never exported)"]
+        APPC["Auth App"]
+    end
+    subgraph Z2["Zone 2 - Public Networks"]
+        NET["Internet (TLS 1.3)"]
+        PSTN["PSTN (voice call, carrier-controlled)"]
+    end
+    subgraph Z3["Zone 3 - Backend Trust Zone (access-controlled)"]
+        ORCH["Auth Orchestrator"]
+        HSM["Key Store: public keys only"]
+        OTPS["OTP Store: salted hash + TTL"]
+        AUDIT["Audit Log (append-only)"]
+    end
+    subgraph Z4["Zone 4 - Third-Party Telephony (trusted processor)"]
+        GW["Voice Gateway API"]
+    end
+
+    SE -->|"signature only, no biometric data"| APPC
+    APPC -->|"TLS 1.3"| NET --> ORCH
+    ORCH --> HSM
+    ORCH -->|"trigger call"| GW --> PSTN -->|"spoken code"| APPC
+    ORCH --> OTPS
+    ORCH -.->|"every decision"| AUDIT

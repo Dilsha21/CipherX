@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign in</title>
+</head>
+<body>
+  <!-- TODO(Member D): implement the Sign-in / Biometric / Waiting-for-call /
+       Code-entry / Success / Error screens per README.md. Each screen state
+       must be announced via an ARIA live region on entry (WCAG SC 4.1.3). -->
+  <main id="app" aria-live="polite">
+    <h1>Sign in</h1>
+    <form id="login-form">
+      <label for="username">Username</label>
+      <input id="username" name="username" type="text" autocomplete="username" required />
+
+      <label for="password">Password</label>
+      <input id="password" name="password" type="password" autocomplete="current-password" required />
+
+      <button type="submit">Sign in</button>
+    </form>
+  </main>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
