@@ -57,6 +57,8 @@ router.post('/voice-otp/verify', asyncHandler(async (req, res) => {
 
   const result = await voiceOtpFactorClient.verifyCode(otpId, code);
 
+  logAuditEvent({ userId: challenge.userId, factor: 'voice_otp', outcome: result.passed ? 'success' : 'failure' });
+
   if (!result.passed) {
     return res.status(400).json({ factor: 'voice_otp', passed: false, attemptsRemaining: result.attemptsRemaining });
   }
