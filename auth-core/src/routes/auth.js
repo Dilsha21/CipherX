@@ -3,11 +3,14 @@ const { randomUUID } = require('crypto');
 const { hashPassword, verifyPassword } = require('../lib/password');
 const { apiError } = require('../lib/errors');
 const { createUser, findUserByUsername } = require('../store/userStore');
+const { normalizeField } = require('../lib/validate');
 
 const router = express.Router();
 
 router.post('/register', async (req, res) => {
-  const { username, password, phoneNumber } = req.body || {};
+  const username = normalizeField(req.body && req.body.username);
+  const password = normalizeField(req.body && req.body.password);
+  const phoneNumber = normalizeField(req.body && req.body.phoneNumber);
 
   if (!username || !password || !phoneNumber) {
     return apiError(res, 400, 'missing_fields', 'Username, password, and phone number are all required.');
@@ -24,7 +27,8 @@ router.post('/register', async (req, res) => {
 });
 
 router.post('/login', async (req, res) => {
-  const { username, password } = req.body || {};
+  const username = normalizeField(req.body && req.body.username);
+  const password = normalizeField(req.body && req.body.password);
 
   if (!username || !password) {
     return apiError(res, 400, 'missing_fields', 'Username and password are both required.');
