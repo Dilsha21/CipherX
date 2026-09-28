@@ -1,11 +1,12 @@
 const express = require('express');
+const authRoutes = require('./routes/auth');
 
 const app = express();
 app.use(express.json());
 
+app.use('/auth', authRoutes);
+
 // TODO(Member A): implement per /shared/API_CONTRACT.md section 1
-// - POST /auth/register
-// - POST /auth/login
 // - POST /auth/mfa/biometric/challenge  (proxy to Biometric-Factor)
 // - POST /auth/mfa/biometric/verify     (proxy to Biometric-Factor)
 // - POST /auth/mfa/voice-otp/send       (proxy to Voice-OTP-Factor)
