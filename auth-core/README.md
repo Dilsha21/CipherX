@@ -52,9 +52,8 @@ secrets in plaintext).
 ## Implementation status
 
 - [x] `POST /auth/register` — bcrypt password hashing, in-memory user store
-- [x] `POST /auth/login` — password check (challenge/factor tracking is a
-      placeholder here; see `feature/auth-core-challenge-tracking`)
-- [ ] Persistent challenge + completed-factors tracking
+- [x] `POST /auth/login` — password check, issues a persisted challenge
+- [x] Persistent challenge + completed-factors tracking (10-minute TTL)
 - [ ] Server-to-server MFA proxy to Biometric-Factor / Voice-OTP-Factor
 - [ ] Session finalize + JWT issuance
 - [ ] Audit log wiring

@@ -1,9 +1,10 @@
 const express = require('express');
-const { randomUUID } = require('crypto');
 const { hashPassword, verifyPassword } = require('../lib/password');
 const { apiError } = require('../lib/errors');
 const { createUser, findUserByUsername } = require('../store/userStore');
+const { createChallenge } = require('../store/challengeStore');
 const { normalizeField } = require('../lib/validate');
+const { REQUIRED_FACTORS } = require('../lib/constants');
 
 const router = express.Router();
 
@@ -41,13 +42,12 @@ router.post('/login', async (req, res) => {
     return apiError(res, 401, 'invalid_credentials', 'That username or password is not correct.');
   }
 
-  // NOTE: challengeId/requiredFactors tracking is a placeholder here.
-  // feature/auth-core-challenge-tracking replaces this with a persistent
-  // challenge store so MFA verify steps can look it back up.
+  const challenge = createChallenge({ userId: user.userId, requiredFactors: REQUIRED_FACTORS });
+
   return res.status(200).json({
-    challengeId: randomUUID(),
-    requiredFactors: ['biometric', 'voice_otp'],
-    completedFactors: [],
+    challengeId: challenge.challengeId,
+    requiredFactors: challenge.requiredFactors,
+    completedFactors: challenge.completedFactors,
   });
 });
 
