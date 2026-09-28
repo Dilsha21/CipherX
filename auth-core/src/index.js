@@ -1,16 +1,14 @@
 const express = require('express');
 const authRoutes = require('./routes/auth');
+const mfaRoutes = require('./routes/mfa');
 
 const app = express();
 app.use(express.json());
 
 app.use('/auth', authRoutes);
+app.use('/auth/mfa', mfaRoutes);
 
 // TODO(Member A): implement per /shared/API_CONTRACT.md section 1
-// - POST /auth/mfa/biometric/challenge  (proxy to Biometric-Factor)
-// - POST /auth/mfa/biometric/verify     (proxy to Biometric-Factor)
-// - POST /auth/mfa/voice-otp/send       (proxy to Voice-OTP-Factor)
-// - POST /auth/mfa/voice-otp/verify     (proxy to Voice-OTP-Factor)
 // - POST /auth/session/finalize
 
 app.get('/health', (_req, res) => res.json({ status: 'ok', service: 'auth-core' }));
