@@ -25,12 +25,12 @@ sections 1 and 4 (library interface).
 
 ## While developing standalone
 
-Biometric-Factor and Voice-OTP-Factor aren't your dependency to build — mock
-them. `src/mocks/factorServices.js` gives you fake implementations matching
-their internal API shapes (section 2 and 3 of the contract) so you can build
-and test the orchestrator's factor-tracking logic without either service
-running. Swap the mocks for real `fetch`/`axios` calls to
-`http://localhost:4001` / `:4002` only during the integration phase.
+Biometric-Factor and Voice-OTP-Factor aren't your dependency to build.
+`src/services/biometricFactorClient.js` and `src/services/voiceOtpFactorClient.js`
+make real HTTP calls to `BIOMETRIC_FACTOR_URL` / `VOICE_OTP_FACTOR_URL`
+(default `:4001` / `:4002`), but the test suite never needs either service
+running — routes are tested with `nock` mocking the HTTP layer (see
+`tests/routes/mfa.*.test.js`).
 
 ## External tools / libraries
 
@@ -65,7 +65,16 @@ secrets in plaintext).
       otherwise. The challenge is invalidated on success so it can't be
       replayed for a second token. Configure `JWT_SECRET` in production —
       see `.env.example`.
-- [ ] Audit log wiring
+- [x] Audit log wiring — `src/lib/auditLog.js` is a local stand-in for
+      Security-Admin's `logAuditEvent(...)` (same function signature per
+      `/shared/API_CONTRACT.md` section 4), called on every password login,
+      biometric verify, voice-otp verify, and session finalize, success or
+      failure (FR6). Swap the import for Security-Admin's real
+      implementation at integration time.
+
+All five pieces of this module are implemented; see `git log` on this
+branch for the incremental history (each feature was built on its own
+sub-branch and merged in).
 
 ## Getting started
 

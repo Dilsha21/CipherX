@@ -6,6 +6,7 @@ const biometricFactorClient = require('../services/biometricFactorClient');
 const voiceOtpFactorClient = require('../services/voiceOtpFactorClient');
 const { findUserById } = require('../store/userStore');
 const { asyncHandler } = require('../lib/asyncHandler');
+const { logAuditEvent } = require('../lib/auditLog');
 
 const router = express.Router();
 
@@ -24,6 +25,8 @@ router.post('/biometric/verify', asyncHandler(async (req, res) => {
   if (!challenge) return;
 
   const { passed } = await biometricFactorClient.verifyLoginAssertion(challenge.userId, assertionResponse);
+
+  logAuditEvent({ userId: challenge.userId, factor: 'biometric', outcome: passed ? 'success' : 'failure' });
 
   if (!passed) {
     return apiError(res, 401, 'factor_failed', 'That biometric check did not succeed. Please try again.');
@@ -53,6 +56,8 @@ router.post('/voice-otp/verify', asyncHandler(async (req, res) => {
   if (!challenge) return;
 
   const result = await voiceOtpFactorClient.verifyCode(otpId, code);
+
+  logAuditEvent({ userId: challenge.userId, factor: 'voice_otp', outcome: result.passed ? 'success' : 'failure' });
 
   if (!result.passed) {
     return res.status(400).json({ factor: 'voice_otp', passed: false, attemptsRemaining: result.attemptsRemaining });
