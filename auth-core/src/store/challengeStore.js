@@ -26,8 +26,20 @@ function getChallenge(challengeId) {
   return challengesById.get(challengeId) || null;
 }
 
+// Marks a required factor as completed for a challenge. Idempotent: marking
+// an already-completed factor again is a no-op, not a duplicate entry.
+function markFactorComplete(challengeId, factor) {
+  const challenge = challengesById.get(challengeId);
+  if (!challenge) return null;
+
+  if (!challenge.completedFactors.includes(factor)) {
+    challenge.completedFactors.push(factor);
+  }
+  return challenge;
+}
+
 function _reset() {
   challengesById.clear();
 }
 
-module.exports = { createChallenge, getChallenge, _reset, CHALLENGE_TTL_MS };
+module.exports = { createChallenge, getChallenge, markFactorComplete, _reset, CHALLENGE_TTL_MS };
