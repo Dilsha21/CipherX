@@ -51,6 +51,22 @@ backend / third-party voice provider) exactly as scoped in Doc5:
 
 FR6, NFR3, and the full STRIDE threat model / trust-boundary write-up.
 
+## Database
+
+The audit log needs real persistence eventually — see
+[`/shared/DATABASE.md`](../shared/DATABASE.md). You get your own Postgres
+schema (`security_admin`) on the shared Neon project. `migrations/` is set
+up with `node-pg-migrate` but empty — add your first migration (e.g. an
+`audit_log` table: `user_id`, `factor`, `outcome`, `timestamp`) when you
+get to persistence, matching the `logAuditEvent(...)` shape other services
+already call against a local stub:
+
+```
+cp .env.example .env        # fill in DIRECT_DATABASE_URL
+npm run migrate:create add-audit-log-table
+npm run migrate:up
+```
+
 ## Getting started
 
 ```
