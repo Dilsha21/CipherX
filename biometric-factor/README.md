@@ -51,6 +51,21 @@ is wired up.
 
 FR2, FR5 (the 3-strikes fallback), NFR2 (device-bound factor).
 
+## Database
+
+Public keys need to persist somewhere real eventually — see
+[`/shared/DATABASE.md`](../shared/DATABASE.md). You get your own Postgres
+schema (`biometric_factor`) on the shared Neon project; nobody else's
+migrations touch it. `migrations/` is set up with `node-pg-migrate` but
+empty — add your first migration (e.g. a `credentials` table: `user_id`,
+`public_key`, `created_at`) when you get to persistence:
+
+```
+cp .env.example .env        # fill in DIRECT_DATABASE_URL
+npm run migrate:create add-credentials-table
+npm run migrate:up
+```
+
 ## Getting started
 
 ```
