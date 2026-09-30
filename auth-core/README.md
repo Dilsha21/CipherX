@@ -76,6 +76,21 @@ All five pieces of this module are implemented; see `git log` on this
 branch for the incremental history (each feature was built on its own
 sub-branch and merged in).
 
+## Database
+
+The user/challenge stores above are in-memory placeholders. Real
+persistence is a shared Neon Postgres — see
+[`/shared/DATABASE.md`](../shared/DATABASE.md). `migrations/` has an
+initial migration for `auth_core.users` and `auth_core.challenges`
+matching the current in-memory shape; the app code isn't wired to actually
+query it yet (that's a follow-up once `DATABASE_URL` is available to
+everyone). You can still run it now to sanity-check your Neon credentials:
+
+```
+cp .env.example .env        # fill in DIRECT_DATABASE_URL
+npm run migrate:up
+```
+
 ## Getting started
 
 ```

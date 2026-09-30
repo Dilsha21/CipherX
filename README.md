@@ -21,6 +21,8 @@ Each folder is an independent Node.js module with its own `package.json`,
 its own tests, and its own README describing exactly what to build. Read
 [`shared/API_CONTRACT.md`](shared/API_CONTRACT.md) first — it's the only
 thing your module should depend on to talk to the others during development.
+For persistence, see [`shared/DATABASE.md`](shared/DATABASE.md) — one
+shared Neon Postgres project, one schema per backend service.
 
 ## Workflow
 

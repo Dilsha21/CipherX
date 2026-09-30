@@ -6,14 +6,19 @@
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
-    "test": "jest"
+    "test": "jest",
+    "migrate:create": "node-pg-migrate create -m migrations --",
+    "migrate:up": "node-pg-migrate up -m migrations -s biometric_factor --migrations-schema biometric_factor --create-schema -d DIRECT_DATABASE_URL",
+    "migrate:down": "node-pg-migrate down -m migrations -s biometric_factor --migrations-schema biometric_factor -d DIRECT_DATABASE_URL"
   },
   "dependencies": {
     "@simplewebauthn/server": "^9.0.3",
-    "express": "^4.19.2"
+    "express": "^4.19.2",
+    "pg": "^8.11.5"
   },
   "devDependencies": {
     "jest": "^29.7.0",
+    "node-pg-migrate": "^7.6.1",
     "supertest": "^6.3.4"
   }
 }
