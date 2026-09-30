@@ -6,16 +6,21 @@
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
-    "test": "jest"
+    "test": "jest",
+    "migrate:create": "node-pg-migrate create -m migrations --",
+    "migrate:up": "node-pg-migrate up -m migrations -s voice_otp_factor --migrations-schema voice_otp_factor --create-schema -d DIRECT_DATABASE_URL",
+    "migrate:down": "node-pg-migrate down -m migrations -s voice_otp_factor --migrations-schema voice_otp_factor -d DIRECT_DATABASE_URL"
   },
   "dependencies": {
     "express": "^4.19.2",
     "express-rate-limit": "^7.2.0",
+    "pg": "^8.11.5",
     "twilio": "^5.0.4",
     "uuid": "^9.0.1"
   },
   "devDependencies": {
     "jest": "^29.7.0",
+    "node-pg-migrate": "^7.6.1",
     "supertest": "^6.3.4"
   }
 }

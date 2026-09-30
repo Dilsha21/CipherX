@@ -51,6 +51,21 @@ section 3.
 FR3, NFR4 (works on a basic phone line, no data connection needed), and the
 Denial-of-Service mitigation in Doc5's STRIDE table (rate limiting).
 
+## Database
+
+Codes/expiry/attempt-counts need real persistence eventually — see
+[`/shared/DATABASE.md`](../shared/DATABASE.md). You get your own Postgres
+schema (`voice_otp_factor`) on the shared Neon project. `migrations/` is
+set up with `node-pg-migrate` but empty — add your first migration (e.g.
+an `otps` table: `user_id`, `code_hash`, `attempts_remaining`, `expires_at`)
+when you get to persistence:
+
+```
+cp .env.example .env        # fill in DIRECT_DATABASE_URL
+npm run migrate:create add-otps-table
+npm run migrate:up
+```
+
 ## Getting started
 
 ```
