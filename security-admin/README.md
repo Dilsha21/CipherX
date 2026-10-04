@@ -2,7 +2,70 @@
 
 Security controls and threat-model documentation for the accessible MFA system. This module stays within `feature/security-admin` and implements the interface in `shared/API_CONTRACT.md` without calling other services directly.
 
-## Public module interface
+## What you're building
+
+Two things:
+
+### 1. A reusable library + small internal service
+- `rateLimiter({ windowMs, max })` — Express middleware, used to cap
+  call-triggering and login attempts across the system (this is what
+  Voice-OTP-Factor needs for anti call-bombing, and Auth Core needs for
+  login brute-force protection).
+- `logAuditEvent({ userId, factor, outcome, timestamp })` — appends to an
+  audit log (FR6: every login attempt, success/failure, factor, timestamp).
+- `GET /internal/audit-log?userId=...&since=...` — internal endpoint to
+  query the log (for an admin view / manual review).
+- TLS enforcement: middleware/config notes for the other three backend
+  services (helmet + reject non-HTTPS in production) — NFR3.
+
+Other modules import your library at **integration time only**. Until then
+they call a local no-op stub with the same function signature, so you don't
+block anyone and they don't block you. See
+[`/shared/API_CONTRACT.md`](../shared/API_CONTRACT.md) section 4.
+
+### 2. `THREAT_MODEL.md` — the actual deliverable for Doc5
+Write up the STRIDE analysis properly in this folder (not just in the Word
+doc) so it lives next to the code it's evaluating. It must cover, at
+minimum, the six STRIDE categories against the three trust zones (phone /
+backend / third-party voice provider) exactly as scoped in Doc5:
+
+| Threat | Mitigation owner |
+|---|---|
+| Spoofing | Biometric-Factor (device-bound key) |
+| Tampering | TLS 1.3 everywhere + signed challenge-response |
+| Repudiation | Your audit log (FR6) |
+| Information Disclosure | No raw biometric data ever stored (Biometric-Factor); OTPs stored only as short-lived hashes (Voice-OTP-Factor) |
+| **Denial of Service (highest severity)** | Your `rateLimiter` on the call-trigger endpoint — flag *why* this is ranked highest: the target users may find repeated harassing calls harder to screen than a sighted user glancing at caller ID |
+| Elevation of Privilege | Auth Core (session only issued once all required factors independently pass) |
+| SIM-swap / call-forwarding | Explicitly accepted residual risk (Doc5 E4) — document it, don't pretend to solve it |
+
+## External tools / libraries
+
+- `express-rate-limit` — the actual rate-limiting implementation.
+- `helmet` — standard Express security headers / HTTPS enforcement.
+- No external account/API key needed.
+
+## Requirements this module is responsible for
+
+FR6, NFR3, and the full STRIDE threat model / trust-boundary write-up.
+
+## Database
+
+The audit log needs real persistence eventually — see
+[`/shared/DATABASE.md`](../shared/DATABASE.md). You get your own Postgres
+schema (`security_admin`) on the shared Neon project. `migrations/` is set
+up with `node-pg-migrate` but empty — add your first migration (e.g. an
+`audit_log` table: `user_id`, `factor`, `outcome`, `timestamp`) when you
+get to persistence, matching the `logAuditEvent(...)` shape other services
+already call against a local stub:
+
+```
+cp .env.example .env        # fill in DIRECT_DATABASE_URL
+npm run migrate:create add-audit-log-table
+npm run migrate:up
+```
+
+## Getting started
 
 ```js
 const { logAuditEvent, rateLimiter, securityService, createSecurityModule } = require('./src');
@@ -44,6 +107,27 @@ The default store is in memory. It loses counters and audit events on restart, i
 4. Production deployment terminates TLS 1.3, authenticates internal services, restricts the audit endpoint to administrators, and replaces the process-local store.
 
 These are additive integration details. If the shared contract is extended, add the four adapter signatures above without redefining existing endpoints.
+
+## Database setup
+
+The project provides a shared Neon Postgres database. Security-Admin owns
+the `security_admin` schema. See
+[shared/DATABASE.md](../shared/DATABASE.md).
+
+Migration tooling is configured, but audit logging and security counters
+currently use in-memory storage. Postgres persistence is a follow-up.
+
+To prepare a migration:
+
+```sh
+cp .env.example .env
+# Configure DIRECT_DATABASE_URL in .env.
+npm run migrate:create add-audit-log-table
+# Implement and review the generated migration before applying it.
+npm run migrate:up
+```
+
+Keep credentials in `.env`; never commit them.
 
 ## Run
 
