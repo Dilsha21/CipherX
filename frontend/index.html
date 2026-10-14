@@ -3,23 +3,82 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- No inline script or style anywhere in this app, so the policy can
+       forbid both outright. frame-ancestors cannot be set from a meta tag;
+       it is sent as a response header (see vite.config.mjs / README). -->
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self'; base-uri 'none'; form-action 'self'" />
+  <meta name="referrer" content="no-referrer" />
   <title>Sign in</title>
+  <link rel="stylesheet" href="/src/styles.css" />
 </head>
 <body>
-  <!-- TODO(Member D): implement the Sign-in / Biometric / Waiting-for-call /
-       Code-entry / Success / Error screens per README.md. Each screen state
-       must be announced via an ARIA live region on entry (WCAG SC 4.1.3). -->
-  <main id="app" aria-live="polite">
-    <h1>Sign in</h1>
-    <form id="login-form">
-      <label for="username">Username</label>
-      <input id="username" name="username" type="text" autocomplete="username" required />
+  <main id="app">
+    <!-- Screen-entry announcements (WCAG SC 4.1.3). Kept separate from the
+         screens so only the new sentence is spoken, not the whole page. -->
+    <div id="status" role="status" class="visually-hidden"></div>
 
-      <label for="password">Password</label>
-      <input id="password" name="password" type="password" autocomplete="current-password" required />
+    <!-- Errors: announced immediately, and always as text (SC 3.3.1). -->
+    <div id="error" role="alert" class="error"></div>
 
-      <button type="submit">Sign in</button>
-    </form>
+    <section data-screen="signIn">
+      <h1 tabindex="-1">Sign in</h1>
+      <p class="step">Step 1 of 3: username and password.</p>
+      <form id="login-form" novalidate>
+        <label for="username">Username</label>
+        <input id="username" name="username" type="text" autocomplete="username"
+               autocapitalize="none" spellcheck="false" required />
+
+        <label for="password">Password</label>
+        <input id="password" name="password" type="password" autocomplete="current-password" required />
+
+        <button id="sign-in-button" type="submit">Sign in</button>
+      </form>
+    </section>
+
+    <section data-screen="biometric" hidden>
+      <h1 tabindex="-1">Verify your identity</h1>
+      <p class="step">Step 2 of 3: fingerprint or face check.</p>
+      <p>Fingerprint or face check requested. Press the button below, then follow your device's prompt.</p>
+      <button id="biometric-start" type="button">Start fingerprint or face check</button>
+      <button type="button" class="secondary" data-action="restart">Cancel and start again</button>
+    </section>
+
+    <section data-screen="calling" hidden>
+      <h1 tabindex="-1">Calling your phone</h1>
+      <p class="step">Step 3 of 3: login code by phone call.</p>
+      <p>Calling your registered phone number now with your login code. This may take a few seconds.</p>
+      <p>During the call, press 1 on your phone's keypad to hear the code again.</p>
+      <button id="calling-continue" type="button" hidden>Continue to enter the code</button>
+      <button id="calling-retry" type="button" class="secondary" hidden>Call me again</button>
+      <button type="button" class="secondary" data-action="restart">Cancel and start again</button>
+    </section>
+
+    <section data-screen="code" hidden>
+      <h1 tabindex="-1">Enter your code</h1>
+      <p class="step">Step 3 of 3: login code by phone call.</p>
+      <form id="code-form" novalidate>
+        <label for="code">6-digit code you heard on the call</label>
+        <input id="code" name="code" type="text" inputmode="numeric" autocomplete="one-time-code"
+               spellcheck="false" required />
+        <p id="code-expiry"></p>
+        <button id="code-verify" type="submit">Verify code</button>
+      </form>
+      <button id="code-repeat" type="button" class="secondary">Repeat call</button>
+      <button type="button" class="secondary" data-action="restart">Cancel and start again</button>
+    </section>
+
+    <section data-screen="success" hidden>
+      <h1 tabindex="-1">Login successful</h1>
+      <p>Welcome back. All three steps are complete.</p>
+      <button id="sign-out" type="button" class="secondary">Sign out</button>
+    </section>
+
+    <section data-screen="stopped" hidden>
+      <h1 tabindex="-1">Sign-in stopped</h1>
+      <p id="stopped-message"></p>
+      <button id="stopped-restart" type="button" data-action="restart">Start again</button>
+    </section>
   </main>
   <script type="module" src="/src/main.js"></script>
 </body>

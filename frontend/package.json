@@ -4,8 +4,10 @@
   "private": true,
   "description": "Accessible, screen-reader-first login UI",
   "scripts": {
-    "dev": "vite --port 5173",
+    "dev": "vite",
+    "dev:mock": "vite --mode mock",
     "build": "vite build",
+    "preview": "vite preview",
     "test": "jest"
   },
   "devDependencies": {
@@ -13,10 +15,13 @@
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
     "jest-axe": "^8.0.0",
-    "jsdom": "^24.0.0"
+    "jsdom": "^24.0.0",
+    "@babel/plugin-transform-modules-commonjs": "^7.24.0"
   },
   "jest": {
     "testEnvironment": "jsdom",
-    "setupFiles": ["<rootDir>/tests/jest.setup.js"]
+    "setupFiles": [
+      "<rootDir>/tests/jest.setup.js"
+    ]
   }
 }
